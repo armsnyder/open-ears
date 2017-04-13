@@ -23,4 +23,4 @@ RUN apk add --update \
 
 VOLUME out
 
-COPY app/open_ears.py opt/
+COPY open_ears.py opt/

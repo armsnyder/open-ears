@@ -20,7 +20,7 @@ Saved
 
 Open Ears uses the PyAudio Python package to record audio, so install that first.
 
-Run the `app/open_ears.py` script to run Open Ears.
+Run the `open_ears.py` script to run Open Ears.
 
 ## Deployment
 
