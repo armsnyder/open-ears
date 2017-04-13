@@ -1,2 +1,25 @@
-# open-ears
-Continuously records microphone input with option to save recent recordings
+# Open Ears
+Open Ears is a small Python application that continuously records microphone input, built to run 
+on a Raspberry Pi. It exposes a web handler that can be called to save the audio buffer to a file.
+
+This is useful for cases where you have a parrot who occasionally makes shrieking noises and you
+need to collect audio samples for another project.
+
+## Local Development
+
+Open Ears uses the PyAudio Python package to record audio, so install that first.
+
+Run the `app/open_ears.py` script to run Open Ears.
+
+## Deployment
+
+Open Ears can be built and deployed as a Docker image. Since it is intended to be deployed to the 
+ARM-based Raspberry Pi, the Docker image is built on top of the armbuild/alpine image.
+
+Example:
+```bash
+docker build . -t openears
+docker run -d --restart always openears
+```
+
+Why Docker? Mostly to encapsulate the hairy system-level audio dependencies.
