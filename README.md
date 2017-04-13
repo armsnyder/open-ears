@@ -7,6 +7,10 @@ need to collect audio samples for another project.
 
 ## How To Use
 
+Open Ears uses the PyAudio Python package to record audio, so install that first.
+
+Run the `open_ears.py` script to run Open Ears.
+
 By default, Open Ears is configured to save the last 30 seconds of audio when it receives an HTTP
 GET request on port 8080, with a request path containing the text "save".
 
@@ -15,12 +19,6 @@ Example:
 $ curl localhost:8080/save
 Saved
 ```
-
-## Local Development
-
-Open Ears uses the PyAudio Python package to record audio, so install that first.
-
-Run the `open_ears.py` script to run Open Ears.
 
 ## Deployment
 
