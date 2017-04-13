@@ -4,7 +4,8 @@ CMD ["python", "/opt/open_ears.py"]
 
 RUN apk add --update \
     python2 \
-    portaudio
+    portaudio \
+    alsa-lib
 
 RUN apk add --update \
     python2-dev \
@@ -20,4 +21,6 @@ RUN apk add --update \
     gcc \
     libc-dev
 
-COPY app/* opt/
+VOLUME out
+
+COPY app/open_ears.py opt/

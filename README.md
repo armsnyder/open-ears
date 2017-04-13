@@ -20,6 +20,7 @@ Example:
 ```bash
 docker build . -t openears
 docker run -d --restart always openears
+docker run -d --restart always -p 8080:8080 --device /dev/snd -v /home/pi/out:/out openears
 ```
 
 Why Docker? Mostly to encapsulate the hairy system-level audio dependencies.
