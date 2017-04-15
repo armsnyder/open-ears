@@ -4,7 +4,9 @@ FROM armbuild/alpine:latest
 RUN apk add --update --no-cache \
     python2 \
     portaudio \
-    alsa-lib
+    alsa-lib && \
+    # delete unknown devices configured by default in alsa-lib
+    sed -i 132,148d /usr/share/alsa/alsa.conf
 
 # install python dependencies with pip
 RUN apk add --update --no-cache \
@@ -20,9 +22,6 @@ RUN apk add --update --no-cache \
     portaudio-dev \
     gcc \
     libc-dev
-
-# delete unknown devices configured by default in alsa-lib
-RUN sed -i 132,148d /usr/share/alsa/alsa.conf
 
 CMD ["python", "/opt/open_ears.py"]
 
