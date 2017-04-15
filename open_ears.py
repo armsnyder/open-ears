@@ -196,6 +196,7 @@ class SingleRequestServer(BaseHTTPServer.HTTPServer):
 def my_print(message):
     print('[%s] [%s] %s' % (datetime.datetime.now().strftime("%H:%M:%S"),
                             threading.currentThread().getName(), message))
+    sys.stdout.flush()
 
 
 if __name__ == '__main__':
