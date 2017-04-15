@@ -7,104 +7,182 @@ import BaseHTTPServer
 import os
 import datetime
 import time
-import signal
 import sys
-
-history_seconds = 30
-output_directory = 'out'
-chunk_size = 1024
-bit_depth = pyaudio.paInt16
-channels = 1
-sample_rate = 44100
-port = 8080
-save_command = 'save'
+import signal
 
 
-def main():
-    audio_buffer = {
-        'frames': [''] * (sample_rate * history_seconds / chunk_size),
-        'cursor': 0
-    }
-    audio_buffer_lock = threading.Lock()
+class OpenEars:
+    def __init__(self):
+        self._microphone = Microphone(2, 1024)
+        self._sound_buffer = SoundBuffer(self._microphone, 30)
+        self._buffer_saver = BufferSaver(self._sound_buffer, 'out')
+        self._server = SingleRequestServer(8080, 'save', self._buffer_saver.save)
+        self._is_active = False
+        self._register_shutdown_handler()
 
-    audio_stream = [None]
+    def start(self):
+        my_print('Starting Open Ears')
+        self._is_active = True
+        self._microphone.start()
+        self._server.start()
+        self._keep_alive()
 
-    def start_stream():
-        audio = pyaudio.PyAudio()
+    def _register_shutdown_handler(self):
+        signal.signal(signal.SIGINT, self._handle_shutdown)
 
-        input_device_index = 0
-        for input_device_index in xrange(audio.get_device_count()):
-            if audio.get_device_info_by_index(input_device_index)['maxInputChannels'] > 0:
+    def _handle_shutdown(self, *_):
+        self._is_active = False
+        self._server.stop()
+        self._microphone.stop()
+
+    def _keep_alive(self):
+        while self._is_active:
+            if not self._server.is_active():
+                my_print('Problem with server')
+                sys.exit(1)
+            if not self._microphone.is_active():
+                my_print('Problem with audio stream')
+                sys.exit(1)
+            time.sleep(2)
+
+
+class Microphone:
+    def __init__(self, sample_width, frames_per_buffer):
+        self.sample_width = sample_width
+        self._format = pyaudio.get_format_from_width(sample_width)
+        self.frames_per_buffer = frames_per_buffer
+        self._audio = pyaudio.PyAudio()
+        self._device_info = None
+        self._stream = None
+        self._subscribers = {}
+        self.channels = None
+        self.index = None
+        self.sample_rate = None
+        self._select_microphone()
+
+    def _select_microphone(self):
+        for i in xrange(self._audio.get_device_count()):
+            device_info = self._audio.get_device_info_by_index(i)
+            self.channels = int(device_info['maxInputChannels'])
+            self.index = int(device_info['index'])
+            self.sample_rate = int(device_info['defaultSampleRate'])
+            if self.channels:
+                my_print('Selected microphone: ' + device_info['name'])
                 break
-        print('Selected microphone: ' + audio.get_device_info_by_index(input_device_index)['name'])
+        if not self.channels:
+            raise RuntimeError("Could not find any microphones")
 
-        def stream_callback(data_in, *_):
-            with audio_buffer_lock:
-                write_to_buffer(data_in)
-                move_cursor()
-            return None, pyaudio.paContinue
+    def __del__(self):
+        self.stop()
+        if self._audio:
+            self._audio.terminate()
 
-        def write_to_buffer(data_in):
-            audio_buffer['frames'][audio_buffer['cursor']] = data_in
+    def start(self):
+        if not self._stream:
+            my_print('Starting audio stream')
+            self._stream = self._audio.open(format=self._format,
+                                            channels=self.channels,
+                                            rate=self.sample_rate,
+                                            input=True,
+                                            input_device_index=self.index,
+                                            frames_per_buffer=self.frames_per_buffer,
+                                            stream_callback=self._callback)
+        return self
 
-        def move_cursor():
-            audio_buffer['cursor'] = (audio_buffer['cursor'] + 1) % len(audio_buffer['frames'])
+    def _callback(self, *args):
+        for callback in self._subscribers.values():
+            callback(*args)
+        return None, pyaudio.paContinue
 
-        print('Opening audio stream...')
-        audio_stream[0] = audio.open(format=bit_depth,
-                                     channels=channels,
-                                     rate=sample_rate,
-                                     input=True,
-                                     input_device_index=input_device_index,
-                                     frames_per_buffer=chunk_size,
-                                     stream_callback=stream_callback)
-        print('Starting audio stream...')
-        audio_stream[0].start_stream()
-        print("Listening on microphone")
+    def stop(self):
+        if self.is_active():
+            my_print('Stopping audio stream')
+            self._stream.stop_stream()
+            self._stream.close()
+            self._stream = None
+        return self
 
-    def save_audio_buffer_to_disk():
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-        file_name = datetime.datetime.now().strftime("%m%d_%H%M%S.wav")
-        full_output_path = os.path.join(output_directory, file_name)
-        wave_file = wave.open(full_output_path, 'wb')
-        wave_file.setnchannels(channels)
-        wave_file.setsampwidth(pyaudio.get_sample_size(bit_depth))
-        wave_file.setframerate(sample_rate)
-        audio_to_save = get_audio_from_buffer()
-        print("Saving %d bytes of data..." % len(audio_to_save))
-        wave_file.writeframes(audio_to_save)
-        wave_file.close()
-        print("Saved last %d seconds to %s" % (history_seconds, full_output_path))
+    def subscribe(self, caller, callback):
+        my_print('Adding subscriber ' + str(caller))
+        self._subscribers[caller] = callback
+        return self
 
-    def get_audio_from_buffer():
-        with audio_buffer_lock:
-            audio_after_cursor = b''.join(audio_buffer['frames'][audio_buffer['cursor']:])
-            audio_before_cursor = b''.join(audio_buffer['frames'][:audio_buffer['cursor']])
+    def is_active(self):
+        return self._stream and self._stream.is_active()
+
+
+class SoundBuffer:
+    def __init__(self, microphone, size_seconds):
+        self.microphone = microphone
+        self._frames = [''] * (microphone.sample_rate * size_seconds / microphone.frames_per_buffer)
+        self._cursor = 0
+        self._lock = threading.Lock()
+        microphone.subscribe(self, self._callback)
+
+    def _callback(self, data_in, *_):
+        with self._lock:
+            self._frames[self._cursor] = data_in
+            self._cursor = (self._cursor + 1) % len(self._frames)
+
+    def get(self):
+        with self._lock:
+            audio_after_cursor = b''.join(self._frames[self._cursor:])
+            audio_before_cursor = b''.join(self._frames[:self._cursor])
         return audio_after_cursor + audio_before_cursor
 
-    def do_shutdown_sequence(*_):
-        print('Closing audio stream...')
-        audio_stream[0].close()
-        print('Stopping server...')
-        http_server.shutdown()
-        server_thread.join()
-        print('Done')
-        sys.exit(1)
 
-    def register_shutdown_handler():
-        signal.signal(signal.SIGINT, do_shutdown_sequence)
+class BufferSaver:
+    def __init__(self, sound_buffer, output_directory):
+        self._sound_buffer = sound_buffer
+        self._output_directory = output_directory
 
-    def run_forever():
-        while server_thread.is_alive and audio_stream[0].is_active():
-            time.sleep(5)
-        print('Something went wrong. Stopping...')
-        do_shutdown_sequence()
+    def save(self):
+        if not os.path.exists(self._output_directory):
+            my_print('Creating dir ' + self._output_directory)
+            os.makedirs(self._output_directory)
+        file_name = datetime.datetime.now().strftime("%m%d_%H%M%S.wav")
+        full_output_path = os.path.join(self._output_directory, file_name)
+        wave_file = wave.open(full_output_path, 'wb')
+        wave_file.setnchannels(self._sound_buffer.microphone.channels)
+        wave_file.setsampwidth(self._sound_buffer.microphone.sample_width)
+        wave_file.setframerate(self._sound_buffer.microphone.sample_rate)
+        audio_to_save = self._sound_buffer.get()
+        my_print("Saving %d bytes of data..." % len(audio_to_save))
+        wave_file.writeframes(audio_to_save)
+        wave_file.close()
+        my_print("Saved to %s" % full_output_path)
 
-    class WebHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
+class SingleRequestServer(BaseHTTPServer.HTTPServer):
+    def __init__(self, port, request_name, callback):
+        BaseHTTPServer.HTTPServer.__init__(self, ('', port), self.SingleRequestHandler)
+        self._port = port
+        self.request_name = request_name
+        self.callback = callback
+        self.thread = threading.Thread(target=self.serve_forever, name='server')
+
+    def start(self):
+        if not self.is_active():
+            my_print('Starting server on port ' + str(self._port))
+            self.thread.start()
+
+    def stop(self):
+        if self.is_active():
+            my_print('Shutting down server')
+            self.shutdown()
+            self.thread.join()
+
+    def is_active(self):
+        return self.thread.isAlive()
+
+    def __del__(self):
+        self.stop()
+
+    class SingleRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+        # noinspection PyPep8Naming
         def do_GET(self):
-            if save_command in self.path:
-                save_audio_buffer_to_disk()
+            if self.server.request_name in self.path:
+                self.server.callback()
                 self.respond_to_client()
             else:
                 self.send_error(404)
@@ -112,18 +190,13 @@ def main():
         def respond_to_client(self):
             self.send_response(200)
             self.end_headers()
-            self.wfile.write('Saved')
+            self.wfile.write('OK')
 
-    start_stream()
 
-    http_server = BaseHTTPServer.HTTPServer(('', port), WebHandler)
-    server_thread = threading.Thread(target=http_server.serve_forever)
-    server_thread.start()
-    print('Started serving on port ' + str(port))
-
-    register_shutdown_handler()
-    run_forever()
+def my_print(message):
+    print('[%s] [%s] %s' % (datetime.datetime.now().strftime("%H:%M:%S"),
+                            threading.currentThread().getName(), message))
 
 
 if __name__ == '__main__':
-    main()
+    OpenEars().start()

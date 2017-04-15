@@ -1,13 +1,11 @@
 FROM armbuild/alpine:latest
 
-CMD ["python", "/opt/open_ears.py"]
-
-RUN apk add --update \
+RUN apk add --update --no-cache \
     python2 \
     portaudio \
     alsa-lib
 
-RUN apk add --update \
+RUN apk add --update --no-cache \
     python2-dev \
     py2-pip \
     portaudio-dev \
@@ -20,6 +18,8 @@ RUN apk add --update \
     portaudio-dev \
     gcc \
     libc-dev
+
+CMD ["python", "/opt/open_ears.py"]
 
 VOLUME out
 

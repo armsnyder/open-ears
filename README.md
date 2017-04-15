@@ -17,7 +17,7 @@ GET request on port 8080, with a request path containing the text "save".
 Example:
 ```bash
 $ curl localhost:8080/save
-Saved
+OK
 ```
 
 ## Deployment
