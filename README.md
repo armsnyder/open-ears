@@ -7,7 +7,7 @@ need to collect audio samples for another project.
 
 ## How To Use
 
-Open Ears uses the PyAudio Python package to record audio, so install that first.
+Open Ears uses the `sounddevice` Python package to record audio, so install that first.
 
 Run the `open_ears.py` script to run Open Ears.
 

@@ -1,27 +1,22 @@
-FROM armbuild/alpine:latest
+FROM armhf/alpine:latest
 
-# install system dependencies
-RUN apk add --update --no-cache \
-    python2 \
-    portaudio \
-    alsa-lib && \
-    # delete unknown devices configured by default in alsa-lib
-    sed -i 132,148d /usr/share/alsa/alsa.conf
+RUN apk add --update --no-cache python2
 
-# install python dependencies with pip
-RUN apk add --update --no-cache \
-    python2-dev \
-    py2-pip \
-    portaudio-dev \
-    gcc \
-    libc-dev && \
-    pip install pyaudio wave && \
-    apk del \
-    python2-dev \
-    py2-pip \
-    portaudio-dev \
-    gcc \
-    libc-dev
+RUN apk add --update --no-cache py-numpy
+
+RUN apk add --update --no-cache portaudio
+
+RUN apk add --update --no-cache libsndfile
+
+# build and install python scikits.audiolab
+RUN apk add --update --no-cache py2-pip py-numpy-dev libsndfile-dev musl-dev && \
+    pip install --no-cache-dir scikits.audiolab && \
+    apk del py2-pip py-numpy-dev libsndfile-dev musl-dev
+
+# build and install python sounddevice
+RUN apk add --update --no-cache py2-pip python2-dev portaudio-dev gcc libc-dev libffi-dev && \
+    pip install --no-cache-dir sounddevice && \
+    apk del py2-pip python2-dev portaudio-dev gcc libc-dev libffi-dev
 
 CMD ["python", "/opt/open_ears.py"]
 
