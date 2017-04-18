@@ -174,23 +174,22 @@ class BufferSaver:
             return data_type
 
 
-class SingleRequestServer(Startable):
+class SingleRequestServer(HTTPServer, Startable):
     def __init__(self, port, request_name, callback):
-        super(SingleRequestServer, self).__init__()
-        self._server = HTTPServer(('', port), self.SingleRequestHandler)
+        super(SingleRequestServer, self).__init__(('', port), self.SingleRequestHandler)
         self.request_name = request_name
         self.callback = callback
-        self.thread = Thread(target=self._server.serve_forever, name='server')
+        self.thread = Thread(target=self.serve_forever, name='server')
 
     def start(self):
         if not self.is_active():
-            my_print('Starting server on port ' + str(self._server.server_port))
+            my_print('Starting server on port ' + str(self.server_port))
             self.thread.start()
 
     def stop(self):
         if self.is_active():
             my_print('Shutting down server')
-            self._server.shutdown()
+            self.shutdown()
             self.thread.join()
 
     def is_active(self):
