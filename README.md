@@ -23,7 +23,7 @@ OK
 ## Deployment
 
 Open Ears can be built and deployed as a Docker image. Since it is intended to be deployed to the 
-ARM-based Raspberry Pi, the Docker image is built on top of the armhf/alpine image.
+ARM-based Raspberry Pi, the Docker image is built on top of the armhf/debian image.
 
 Note that in order for microphones to be available they must be bound to the container.
 
