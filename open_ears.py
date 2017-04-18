@@ -1,52 +1,38 @@
 #!/usr/bin/env python
 
-from threading import Lock, Thread, currentThread
+from threading import Lock, Thread
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from os import path, makedirs
 from datetime import datetime
-from time import sleep
-from sys import stdout
-from signal import signal, SIGINT
 from sounddevice import query_devices, DeviceList, InputStream
 import numpy as np
 from scikits.audiolab import wavwrite
 
+from container import Startable, Container, my_print
 
-class OpenEars:
+
+class OpenEars(Container):
     def __init__(self):
-        self._microphone = Microphone('int16', 1024)
-        self._sound_buffer = SoundBuffer(self._microphone.sample_rate * 30)
-        self._microphone.subscribe(self._sound_buffer,
-                                   lambda *args: self._sound_buffer.write(args[0][0]))
-        self._buffer_saver = BufferSaver(self._sound_buffer, self._microphone.sample_rate, 'out')
-        self._server = SingleRequestServer(8080, 'save', self._buffer_saver.save)
-        self._register_shutdown_handler()
+        super(OpenEars, self).__init__('Open Ears')
+        self.microphone = None
+        self.server = None
+        self.construct_microphone()
+        self.construct_server()
+        self.register(self.microphone, self.server)
 
-    def start(self):
-        my_print('Starting Open Ears')
-        self._microphone.start()
-        self._server.start()
-        self._keep_alive()
+    def construct_microphone(self):
+        self.microphone = Microphone('int16', 1024)
 
-    def _register_shutdown_handler(self):
-        signal(SIGINT, self._handle_shutdown)
-
-    def _handle_shutdown(self, *_):
-        self._server.stop()
-        self._microphone.stop()
-
-    def _is_active(self):
-        return self._microphone and self._microphone.is_active() and \
-               self._server and self._server.is_active()
-
-    def _keep_alive(self):
-        while self._is_active():
-            sleep(2)
-        self._handle_shutdown()
+    def construct_server(self):
+        sound_buffer = SoundBuffer(self.microphone.sample_rate * 30)
+        self.microphone.subscribe(sound_buffer, lambda *args: sound_buffer.write(args[0][0]))
+        buffer_saver = BufferSaver(sound_buffer, self.microphone.sample_rate, 'out')
+        self.server = SingleRequestServer(8080, 'save', buffer_saver.save)
 
 
-class Microphone:
+class Microphone(Startable):
     def __init__(self, data_type, frames_per_buffer):
+        super(Microphone, self).__init__()
         self.data_type = data_type
         self.frames_per_buffer = frames_per_buffer
         self._stream = None
@@ -188,23 +174,23 @@ class BufferSaver:
             return data_type
 
 
-class SingleRequestServer(HTTPServer):
+class SingleRequestServer(Startable):
     def __init__(self, port, request_name, callback):
-        HTTPServer.__init__(self, ('', port), self.SingleRequestHandler)
-        self._port = port
+        super(SingleRequestServer, self).__init__()
+        self._server = HTTPServer(('', port), self.SingleRequestHandler)
         self.request_name = request_name
         self.callback = callback
-        self.thread = Thread(target=self.serve_forever, name='server')
+        self.thread = Thread(target=self._server.serve_forever, name='server')
 
     def start(self):
         if not self.is_active():
-            my_print('Starting server on port ' + str(self._port))
+            my_print('Starting server on port ' + str(self._server.server_port))
             self.thread.start()
 
     def stop(self):
         if self.is_active():
             my_print('Shutting down server')
-            self.shutdown()
+            self._server.shutdown()
             self.thread.join()
 
     def is_active(self):
@@ -226,12 +212,6 @@ class SingleRequestServer(HTTPServer):
             self.send_response(200)
             self.end_headers()
             self.wfile.write('OK')
-
-
-def my_print(message):
-    print('[%s] [%s] %s' % (datetime.now().strftime("%H:%M:%S"), currentThread().getName(),
-                            message))
-    stdout.flush()
 
 
 if __name__ == '__main__':
