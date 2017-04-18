@@ -1,5 +1,5 @@
 from unittest import TestCase
-from open_ears import SoundBuffer
+from lib.recording import SoundBuffer
 import numpy as np
 from numpy.testing import assert_array_equal
 

@@ -28,4 +28,6 @@ CMD ["python", "/opt/open_ears.py"]
 
 VOLUME out
 
-COPY *.py opt/
+COPY open_ears.py opt/
+
+COPY lib/ opt/lib/
