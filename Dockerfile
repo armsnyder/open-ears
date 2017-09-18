@@ -1,27 +1,28 @@
 FROM armhf/debian:latest
 
 RUN apt-get update && \
-    apt-get install -y python-numpy
+    apt-get install -y \
+    python-numpy \
+    python-scipy \
+    libportaudio2 \
+    python-cffi
 
 RUN apt-get update && \
-    apt-get install -y libportaudio2
-
-RUN apt-get update && \
-    apt-get install -y python-cffi
-
-RUN apt-get update && \
-    apt-get install -y python-setuptools
-
-RUN apt-get update && \
-    apt-get install -y python-pip python-dev libsndfile-dev libasound2-dev && \
-    pip install scikits.audiolab && \
-    apt-get remove -y python-pip python-dev libsndfile-dev libasound2-dev && \
-    apt-get autoremove -y
-
-RUN apt-get update && \
-    apt-get install -y python-pip python-dev portaudio19-dev libffi-dev && \
+    apt-get install -y \
+    python-pip \
+    python-dev \
+    portaudio19-dev \
+    libffi-dev \
+    wget && \
     pip install sounddevice && \
-    apt-get remove -y python-pip python-dev portaudio19-dev libffi-dev && \
+    mkdir -p /opt/lib && \
+    wget -O /opt/lib/iso226.py https://raw.githubusercontent.com/jcarrano/rtfi/master/iso226.py && \
+    apt-get remove -y \
+    python-pip \
+    python-dev \
+    portaudio19-dev \
+    libffi-dev \
+    wget && \
     apt-get autoremove -y
 
 CMD ["python", "/opt/open_ears.py"]
