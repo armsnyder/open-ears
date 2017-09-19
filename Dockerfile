@@ -1,5 +1,6 @@
 FROM armhf/debian:latest
 
+# Install python
 RUN apt-get update && \
     apt-get install -y \
     python-numpy \
@@ -7,28 +8,23 @@ RUN apt-get update && \
     libportaudio2 \
     python-cffi
 
+# Install python pip packages
 RUN apt-get update && \
     apt-get install -y \
     python-pip \
     python-dev \
     portaudio19-dev \
-    libffi-dev \
-    wget && \
-    pip install sounddevice && \
-    mkdir -p /opt/lib && \
-    wget -O /opt/lib/iso226.py https://raw.githubusercontent.com/jcarrano/rtfi/master/iso226.py && \
+    libffi-dev && \
+    pip install \
+    sounddevice \
+    phue && \
     apt-get remove -y \
     python-pip \
     python-dev \
     portaudio19-dev \
-    libffi-dev \
-    wget && \
+    libffi-dev && \
     apt-get autoremove -y
 
 CMD ["python", "/opt/open_ears.py"]
 
-VOLUME out
-
-COPY open_ears.py opt/
-
-COPY lib/ opt/lib/
+COPY src/ opt/
