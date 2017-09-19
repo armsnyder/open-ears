@@ -7,6 +7,7 @@ from os import path, makedirs
 import numpy as np
 from scipy.io import wavfile
 
+from flicker_lights import flicker
 from util import my_print
 
 SAMPLE_RATE = 44100
@@ -30,6 +31,7 @@ def filter_stream_by_rms():
 def save_clips_above_rms_threshold():
     while True:
         signal, rms = rms_filtered_stream.get()
+        flicker.set()
         if not path.exists(OUTPUT_DIRECTORY):
             my_print('Creating dir ' + OUTPUT_DIRECTORY)
             makedirs(OUTPUT_DIRECTORY)
