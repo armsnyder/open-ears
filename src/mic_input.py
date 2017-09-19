@@ -10,9 +10,9 @@ SAMPLE_RATE = 44100
 BLOCK_SIZE = 1024
 CHANNELS = 1
 DATA_TYPE = 'int16'
-SAMPLE_PROCESS_INTERVAL = 22500
+SAMPLE_PROCESS_INTERVAL = 11250
 
-ring_buffer = RingBuffer(44100, np.int16)
+ring_buffer = RingBuffer(22500, np.int16)
 
 
 def run():
