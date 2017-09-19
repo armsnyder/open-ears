@@ -1,24 +1,25 @@
 # Open Ears
-Open Ears is a small Python application that continuously records microphone input, built to run 
-on a Raspberry Pi. It exposes a web handler that can be called to save the audio buffer to a file.
 
-This is useful for cases where you have a parrot who occasionally makes shrieking noises and you
-need to collect audio samples for another project.
+Open Ears is an automated pet trainer.
 
-## How To Use
+## The Problem
 
-Open Ears uses the `sounddevice` Python package to record audio, so install that first.
+I have a parrot named Greg who I love very much. We hang out all the time, and even on occasion I 
+bring her to work with me. Recently, however, she has started making a very specific, very load, 
+high-pitched beep. When I am close enough to her cage, the sound is loud enough to cause real ear
+damage.
 
-Run the `open_ears.py` script to run Open Ears.
+## The Solution
 
-By default, Open Ears is configured to save the last 30 seconds of audio when it receives an HTTP
-GET request on port 8080, with a request path containing the text "save".
+Open Ears is a Dockerized Python script which runs on a Raspberry Pi with a microphone. It 
+constantly monitors the sound near Greg's cage for the very specific beep that is a problem. When
+it detects the beep, it triggers a mild negative stimulus: it flashes a ceiling lamp near the cage.
 
-Example:
-```bash
-$ curl localhost:8080/save
-OK
-```
+## Details
+
+Open Ears runs several processes using the `multiprocessing` module. The processes that monitor the
+microphone input stream are layered in complexity such that the cheap processes like calculating 
+the volume are run before the more expensive processes like fourier transforms.
 
 ## Deployment
 

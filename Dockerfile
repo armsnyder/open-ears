@@ -17,6 +17,7 @@ RUN apt-get update && \
     libffi-dev && \
     pip install \
     sounddevice \
+    numpy_ringbuffer \
     phue && \
     apt-get remove -y \
     python-pip \
