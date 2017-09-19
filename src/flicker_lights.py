@@ -21,7 +21,7 @@ def run():
         prev_bri = bridge.get_light(lamp, 'bri')
         prev_on = bridge.get_light(lamp, 'on')
         prev_xy = bridge.get_light(lamp, 'xy')
-        bridge.set_light(lamp, {'bri': 255, 'on': True, 'xy': [0.7006, 0.2993]}, transitiontime=0)
-        bridge.set_light(lamp, {'bri': prev_bri, 'on': prev_on, 'xy': prev_xy}, transitiontime=5)
+        bridge.set_light(lamp, {'bri': 180, 'on': True, 'xy': [0.7006, 0.2993]}, transitiontime=1)
+        bridge.set_light(lamp, {'bri': prev_bri, 'on': prev_on, 'xy': prev_xy}, transitiontime=1)
         sleep(3)  # cooldown
         flicker.clear()

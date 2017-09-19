@@ -6,13 +6,13 @@ from numpy_ringbuffer import RingBuffer
 from sound_processing import unfiltered_stream
 from util import my_print
 
-SAMPLE_RATE = 44100
+SAMPLE_RATE = 44100  # ideally could be ~16000, but the mic we're using doesn't go that low
 BLOCK_SIZE = 1024
 CHANNELS = 1
 DATA_TYPE = 'int16'
-SAMPLE_PROCESS_INTERVAL = 11250
+SAMPLE_PROCESS_INTERVAL = 14700  # 2/3 the size of a full buffer, so we get some overlap
 
-ring_buffer = RingBuffer(22500, np.int16)
+ring_buffer = RingBuffer(22050, np.int16)
 
 
 def run():
