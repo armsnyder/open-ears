@@ -16,6 +16,7 @@ OUTPUT_DIRECTORY = 'out'
 
 unfiltered_stream = Queue(1)
 rms_filtered_stream = Queue(3)
+final_output_stream = Queue(1)
 
 
 def butter_bandpass(low_cut, high_cut, order=3):
@@ -25,22 +26,44 @@ def butter_bandpass(low_cut, high_cut, order=3):
     return butter(order, [low, high], btype='band')
 
 
-def filter_stream_by_rms():
-    b, a = butter_bandpass(4000, 8000)
+bandpass_filter = butter_bandpass(4000, 8000)
+
+
+def cheap_test(signal):
+    b, a = bandpass_filter
+    filtered_signal = filtfilt(b, a, signal)
+    rms = sqrt(np.mean(np.square(filtered_signal)))
+    return rms > 3e-4, rms
+
+
+def cheap_test_process():
     while True:
         signal = unfiltered_stream.get()
-        filtered_signal = filtfilt(b, a, signal)
-        rms = sqrt(np.mean(np.square(filtered_signal)))
-        if rms > 3e-4:
+        passes_test, rms = cheap_test(signal)
+        if passes_test:
             try:
                 rms_filtered_stream.put_nowait((signal, rms))
             except Full:
                 my_print('Warning: rms_filtered_stream queue full')
 
 
-def save_clips_above_rms_threshold():
+def expensive_test(signal):
+    return True
+
+
+def expensive_test_process():
     while True:
         signal, rms = rms_filtered_stream.get()
+        if expensive_test(signal):
+            try:
+                final_output_stream.put_nowait((signal, rms))
+            except Full:
+                my_print('Warning: final_output_stream queue full')
+
+
+def save_clips_above_rms_threshold():
+    while True:
+        signal, rms = final_output_stream.get()
         flicker.set()
         if not path.exists(OUTPUT_DIRECTORY):
             my_print('Creating dir ' + OUTPUT_DIRECTORY)

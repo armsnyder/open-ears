@@ -4,7 +4,8 @@ from sys import exc_info, exit
 
 from flicker_lights import run as run_flicker
 from mic_input import run as run_mic
-from sound_processing import filter_stream_by_rms, save_clips_above_rms_threshold
+from sound_processing import cheap_test_process, expensive_test_process, \
+    save_clips_above_rms_threshold
 from util import my_print
 
 processes = []
@@ -39,6 +40,7 @@ if __name__ == '__main__':
     log_to_stderr(INFO)
     add_process(run_mic, 'Mic')
     add_process(run_flicker, 'Flicker')
-    add_process(filter_stream_by_rms, 'RMS')
+    add_process(cheap_test_process, 'RMS')
+    add_process(expensive_test_process, 'Deep')
     add_process(save_clips_above_rms_threshold, 'Save')
     run_forever()
