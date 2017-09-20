@@ -31,7 +31,7 @@ def filter_stream_by_rms():
         signal = unfiltered_stream.get()
         filtered_signal = filtfilt(b, a, signal)
         rms = sqrt(np.mean(np.square(filtered_signal)))
-        if rms > 0.01:
+        if rms > 3e-4:
             try:
                 rms_filtered_stream.put_nowait((signal, rms))
             except Full:
@@ -45,7 +45,7 @@ def save_clips_above_rms_threshold():
         if not path.exists(OUTPUT_DIRECTORY):
             my_print('Creating dir ' + OUTPUT_DIRECTORY)
             makedirs(OUTPUT_DIRECTORY)
-        rms_string = str(rms).split('.')[1][:4]
+        rms_string = str(rms).split('.')[1][:min(10, len(str(rms)))]
         file_name = '%s_%s.wav' % (datetime.now().strftime('%m%d_%H%M%S%f')[:-5], rms_string)
         full_output_path = path.join(OUTPUT_DIRECTORY, file_name)
         wavfile.write(full_output_path, SAMPLE_RATE, signal)
