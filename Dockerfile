@@ -1,4 +1,4 @@
-FROM armhf/debian:latest
+FROM arm32v7/debian:latest
 
 # Install python
 RUN apt-get update && \
