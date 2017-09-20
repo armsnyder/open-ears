@@ -34,4 +34,6 @@ RUN ["cross-build-end"]
 
 CMD ["python", "/opt/open_ears.py"]
 
+COPY .python_hue root/
+
 COPY src/ opt/
