@@ -1,4 +1,4 @@
-FROM arm32v7/debian:latest
+FROM armsnyder/rpi-debian-base:latest
 
 # Install python
 RUN apt-get update && \
