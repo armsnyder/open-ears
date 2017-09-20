@@ -30,8 +30,9 @@ def run():
         frames_accumulated += data.size
         if frames_accumulated > SAMPLE_PROCESS_INTERVAL:
             frames_accumulated = 0
+            normalized_signal = ring_buffer.__array__().astype(np.float16, order='C') / 2**15
             try:
-                unfiltered_stream.put_nowait(ring_buffer.__array__())
+                unfiltered_stream.put_nowait(normalized_signal)
             except Full:
                 my_print('Warning: unfiltered_stream queue full')
     my_print('Stream went inactive')
