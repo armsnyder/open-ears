@@ -1,4 +1,5 @@
 # Open Ears
+[![Build Status](https://semaphoreci.com/api/v1/armsnyder/open-ears/branches/master/badge.svg)](https://semaphoreci.com/armsnyder/open-ears)
 
 Open Ears is an automated pet trainer.
 

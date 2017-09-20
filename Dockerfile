@@ -1,4 +1,6 @@
-FROM armsnyder/rpi-debian-base:latest
+FROM resin/armv7hf-debian-qemu:latest
+
+RUN ["cross-build-start"]
 
 # Install python
 RUN apt-get update && \
@@ -11,6 +13,7 @@ RUN apt-get update && \
 # Install python pip packages
 RUN apt-get update && \
     apt-get install -y \
+    build-essential \
     python-pip \
     python-dev \
     portaudio19-dev \
@@ -20,14 +23,15 @@ RUN apt-get update && \
     numpy_ringbuffer \
     phue && \
     apt-get remove -y \
+    build-essential \
     python-pip \
     python-dev \
     portaudio19-dev \
     libffi-dev && \
     apt-get autoremove -y
 
-CMD ["python", "/opt/open_ears.py"]
+RUN ["cross-build-end"]
 
-COPY .python_hue root/
+CMD ["python", "/opt/open_ears.py"]
 
 COPY src/ opt/
