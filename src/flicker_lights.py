@@ -14,14 +14,13 @@ def run():
     my_print('Connecting to Phillips Hue bridge')
     bridge.connect()
     my_print('Connected to bridge')
-    max_bri = 255
     red = [0.7006, 0.2993]
     while True:
         my_print('Awaiting flicker command')
         flicker.wait()
         my_print('Flickering')
         prev = bridge.get_light(lamp)['state']
-        bridge.set_light(lamp, {'bri': max_bri, 'on': True, 'xy': red}, transitiontime=0)
+        bridge.set_light(lamp, {'bri': 128, 'on': True, 'xy': red}, transitiontime=0)
         sleep(1)
         bridge.set_light(lamp, {'bri': prev['bri'], 'on': prev['on'], 'xy': prev['xy']},
                          transitiontime=1)
