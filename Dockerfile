@@ -21,6 +21,8 @@ RUN apt-get update && \
     pip install \
     sounddevice \
     numpy_ringbuffer \
+    python_speech_features \
+    sklearn \
     phue && \
     apt-get remove -y \
     build-essential \

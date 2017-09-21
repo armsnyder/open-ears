@@ -22,5 +22,5 @@ def test_dir(dirname, expected):
 
 
 if __name__ == '__main__':
-    test_dir('./out/positives/', True)
-    test_dir('./out/positives/', False)
+    test_dir('../out/positives/', True)
+    test_dir('../out/negatives/', False)
