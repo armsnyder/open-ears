@@ -21,8 +21,8 @@ def get_features_for_all(dirname):
 
 
 if __name__ == '__main__':
-    positive_features = get_features_for_all('../out/positives/')
-    negative_features = get_features_for_all('../out/negatives/')
+    positive_features = get_features_for_all('out/positives/')
+    negative_features = get_features_for_all('out/negatives/')
     all_features = positive_features + negative_features
     all_labels = [True] * len(positive_features) + [False] * len(negative_features)
     classifier = svm.SVC()
