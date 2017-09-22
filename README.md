@@ -1,5 +1,5 @@
 # Open Ears
-[![Build Status](https://semaphoreci.com/api/v1/armsnyder/open-ears/branches/master/badge.svg)](https://semaphoreci.com/armsnyder/open-ears)
+[![Build Status](https://travis-ci.org/armsnyder/open-ears.svg?branch=master)](https://travis-ci.org/armsnyder/open-ears)
 
 ## The Problem
 
