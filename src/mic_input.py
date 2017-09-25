@@ -12,11 +12,10 @@ CHANNELS = 1
 DATA_TYPE = 'int16'
 SAMPLE_PROCESS_INTERVAL = 14700  # 2/3 the size of a full buffer, so we get some overlap
 
-ring_buffer = RingBuffer(22050, np.int16)
-
 
 def run():
     from sounddevice import InputStream, default
+    ring_buffer = RingBuffer(22050, np.int16)
     my_print('Starting audio stream')
     stream = InputStream(SAMPLE_RATE, BLOCK_SIZE, default.device, CHANNELS, DATA_TYPE)
     stream.start()
@@ -30,7 +29,7 @@ def run():
         frames_accumulated += data.size
         if frames_accumulated > SAMPLE_PROCESS_INTERVAL:
             frames_accumulated = 0
-            normalized_signal = ring_buffer.__array__().astype(np.float16, order='C') / 2**15
+            normalized_signal = ring_buffer.__array__().astype(np.float16, order='C') / 2 ** 15
             try:
                 unfiltered_stream.put_nowait(normalized_signal)
             except Full:

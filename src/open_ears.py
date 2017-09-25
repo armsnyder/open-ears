@@ -2,7 +2,7 @@ from logging import INFO
 from multiprocessing import Process, Event, log_to_stderr
 from sys import exc_info, exit
 
-from flicker_lights import run_greg, run_piano
+from flicker_lights import run_greg
 from mic_input import run as run_mic
 from sound_processing import cheap_test_process, expensive_test_process
 from util import my_print
@@ -39,7 +39,6 @@ if __name__ == '__main__':
     log_to_stderr(INFO)
     add_process(run_mic, 'Mic')
     add_process(run_greg, 'Greg')
-    add_process(run_piano, 'Piano')
     add_process(cheap_test_process, 'RMS')
     add_process(expensive_test_process, 'Deep')
     run_forever()

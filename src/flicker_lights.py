@@ -6,13 +6,15 @@ from phue import Bridge
 
 from util import my_print
 
-flicker_piano = Event()
 flicker_greg = Event()
 
-bridge = Bridge()
-my_print('Connecting to Phillips Hue bridge')
-bridge.connect()
-my_print('Connected to bridge')
+
+def get_bridge():
+    bridge = Bridge()
+    my_print('Connecting to Phillips Hue bridge')
+    bridge.connect()
+    my_print('Connected to bridge')
+    return bridge
 
 
 def with_retries(func):
@@ -21,32 +23,18 @@ def with_retries(func):
             try:
                 return func(*args, **kwargs)
             except timeout:
-                if attempt == 2:
+                if attempt < 2:
+                    my_print('Connection timeout. Retrying (%d)' % (attempt + 1))
+                else:
                     raise timeout
 
     return inner_call
 
 
-def run_piano():
-    lamp = 'Piano Lamp'
-    red = [0.7006, 0.2993]
-    while True:
-        my_print('Awaiting flicker_piano command')
-        flicker_piano.wait()
-        my_print('Flickering Piano')
-        prev = with_retries(bridge.get_light)(lamp)['state']
-        with_retries(bridge.set_light)(lamp, {'bri': 128, 'on': True, 'xy': red}, transitiontime=0)
-        sleep(1)
-        with_retries(bridge.set_light)(lamp,
-                                       {'bri': prev['bri'], 'on': prev['on'], 'xy': prev['xy']},
-                                       transitiontime=1)
-        sleep(3)  # cooldown
-        flicker_piano.clear()
-
-
 def run_greg():
     lamp = 'Greg Lamp'
     white = [0.402, 0.3768]
+    bridge = get_bridge()
     while True:
         my_print('Awaiting flicker_greg command')
         flicker_greg.wait()

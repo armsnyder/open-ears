@@ -1,14 +1,22 @@
 FROM resin/armv7hf-debian-qemu:latest
 
+ENV PATH=/miniconda/bin:${PATH}
+
 RUN ["cross-build-start"]
 
-# Install python
+# Install conda
 RUN apt-get update && \
     apt-get install -y \
-    python-numpy \
-    python-scipy \
-    libportaudio2 \
-    python-cffi
+    curl \
+    bzip2 \
+    libportaudio2 && \
+    curl -LO https://repo.continuum.io/miniconda/Miniconda-latest-Linux-armv7l.sh && \
+    bash Miniconda-latest-Linux-armv7l.sh -p /miniconda -b && \
+    rm Miniconda-latest-Linux-armv7l.sh
+
+# Install conda packages
+RUN conda update -y conda && \
+    conda install -y numpy scipy
 
 # Install python pip packages
 RUN apt-get update && \
@@ -21,7 +29,7 @@ RUN apt-get update && \
     pip install \
     sounddevice \
     numpy_ringbuffer \
-    python_speech_features \
+    librosa \
     sklearn \
     phue && \
     apt-get remove -y \

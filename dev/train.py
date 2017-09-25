@@ -1,31 +1,41 @@
 import pickle
-from os import listdir
+from os import path
 
 import numpy as np
-from scipy.io import wavfile
 from sklearn import svm
+from sklearn.model_selection import cross_val_score
 
-from src.sound_processing import extract_features
+from dev.common import load_training_data
+from src.util import my_print
 
 
-def get_features_for_all(dirname):
-    data = []
-    for filename in listdir(dirname):
-        if filename.endswith('.wav'):
-            _, x = wavfile.read(dirname + filename)
-            if x.dtype == np.int16:
-                x = x.astype(np.float16, order='C') / 2 ** 15
-            features = extract_features(x)
-            data.append(features)
-    return data
+def init_classifier():
+    return svm.SVC(kernel='linear')
+
+
+def train_classifier(X, y):
+    classifier = init_classifier()
+    classifier.fit(X, y)
+    return classifier
+
+
+def save_classifier(classifier):
+    with open(path.join('src', 'classifier.p'), 'wb') as f:
+        pickle.dump(classifier, f)
+
+
+def score_classifier(X, y):
+    classifier = init_classifier()
+    return np.mean(cross_val_score(classifier, X, y))
+
+
+def main():
+    X, y = load_training_data()
+    classifier = train_classifier(X, y)
+    save_classifier(classifier)
+    score = score_classifier(X, y)
+    my_print('Created classifier with accuracy score %f' % score)
 
 
 if __name__ == '__main__':
-    positive_features = get_features_for_all('out/positives/')
-    negative_features = get_features_for_all('out/negatives/')
-    all_features = positive_features + negative_features
-    all_labels = [True] * len(positive_features) + [False] * len(negative_features)
-    classifier = svm.SVC()
-    classifier.fit(all_features, all_labels)
-    with open('classifier.p', 'wb') as f:
-        pickle.dump(classifier, f)
+    main()
