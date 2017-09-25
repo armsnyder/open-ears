@@ -16,7 +16,8 @@ RUN apt-get update && \
 
 # Install conda packages
 RUN conda update -y conda && \
-    conda install -y numpy scipy scikit-learn
+    conda install -y numpy scipy scikit-learn && \
+    conda install -y -c seibert llvmlite
 
 # Install python pip packages
 RUN apt-get update && \
