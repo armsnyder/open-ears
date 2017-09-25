@@ -16,26 +16,21 @@ RUN apt-get update && \
 
 # Install conda packages
 RUN conda update -y conda && \
-    conda install -y numpy scipy
+    conda install -y numpy scipy scikit-learn
 
 # Install python pip packages
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
-    python-pip \
-    python-dev \
     portaudio19-dev \
     libffi-dev && \
     pip install \
     sounddevice \
     numpy_ringbuffer \
     librosa \
-    sklearn \
     phue && \
     apt-get remove -y \
     build-essential \
-    python-pip \
-    python-dev \
     portaudio19-dev \
     libffi-dev && \
     apt-get autoremove -y

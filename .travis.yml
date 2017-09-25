@@ -27,7 +27,7 @@ install:
   - docker pull $IMAGE
 
 script:
-  - travis_wait docker build . --cache-from $IMAGE --tag $IMAGE
+  - docker build . --cache-from $IMAGE --tag $IMAGE
   - docker push $IMAGE
   - CONTAINER=openears
   - ssh -o StrictHostKeychecking=no -i secrets/pi_rsa pi@$PI_IP -p $PI_PORT "eval $LOGIN &&
