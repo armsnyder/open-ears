@@ -17,7 +17,6 @@ services:
   - docker
 
 install:
-  - git lfs pull -X dev/training_data.tar.gz
   - openssl aes-256-cbc -K $encrypted_6326f10f2b2b_key -iv $encrypted_6326f10f2b2b_iv -in
     secrets.tar.enc -out secrets.tar -d
   - tar -xvf secrets.tar
@@ -28,7 +27,7 @@ install:
   - docker pull $IMAGE
 
 script:
-  - docker build . --cache-from $IMAGE --tag $IMAGE
+  - travis_wait docker build . --cache-from $IMAGE --tag $IMAGE
   - docker push $IMAGE
   - CONTAINER=openears
   - ssh -o StrictHostKeychecking=no -i secrets/pi_rsa pi@$PI_IP -p $PI_PORT "eval $LOGIN &&
