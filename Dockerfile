@@ -4,37 +4,33 @@ ENV PATH=/miniconda/bin:${PATH}
 
 RUN ["cross-build-start"]
 
-# Install conda
+# system dependencies (for anaconda and sounddevice)
 RUN apt-get update && \
     apt-get install -y \
     curl \
     bzip2 \
-    libportaudio2 && \
-    curl -LO https://repo.continuum.io/miniconda/Miniconda-latest-Linux-armv7l.sh && \
+    libportaudio2
+
+# anaconda (required to get librosa installed alongside everything else)
+RUN curl -LO https://repo.continuum.io/miniconda/Miniconda-latest-Linux-armv7l.sh && \
     bash Miniconda-latest-Linux-armv7l.sh -p /miniconda -b && \
-    rm Miniconda-latest-Linux-armv7l.sh
+    rm Miniconda-latest-Linux-armv7l.sh && \
+    conda update -y conda
 
-# Install conda packages
+# conda packages (note: poppy-project provides some needed armv7 distributions)
 RUN conda update -y conda && \
-    conda install -y numpy scipy scikit-learn && \
-    conda install -y -c seibert llvmlite
-
-# Install python pip packages
-RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    portaudio19-dev \
-    libffi-dev && \
-    pip install \
-    sounddevice \
-    numpy_ringbuffer \
+    conda install -y \
+    numpy \
+    scipy \
+    scikit-learn && \
+    conda install -y -c poppy-project \
     librosa \
-    phue && \
-    apt-get remove -y \
-    build-essential \
-    portaudio19-dev \
-    libffi-dev && \
-    apt-get autoremove -y
+    sounddevice
+
+# pip packages not available through conda
+RUN pip install \
+    numpy_ringbuffer \
+    phue
 
 RUN ["cross-build-end"]
 
