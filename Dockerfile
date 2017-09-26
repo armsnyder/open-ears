@@ -21,16 +21,26 @@ RUN apt-get update && \
     apt-get install -y libportaudio2
 
 # conda packages (note: poppy-project provides some needed armv7 distributions)
-RUN conda update -y conda && \
-    conda install -y \
+RUN conda install -y \
     numpy \
     scipy \
     scikit-learn && \
-    conda install -y -c poppy-project \
-    librosa \
-    sounddevice
+    conda install -y -c poppy-project librosa
 
-# pip packages not available through conda
+# sounddevice library
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    portaudio19-dev \
+    libffi-dev && \
+    pip install sounddevice && \
+    apt-get remove -y \
+    build-essential \
+    portaudio19-dev \
+    libffi-dev && \
+    apt-get autoremove -y
+
+# other pip packages not available through conda
 RUN pip install \
     numpy_ringbuffer \
     phue
