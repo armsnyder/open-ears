@@ -4,18 +4,21 @@ ENV PATH=/miniconda/bin:${PATH}
 
 RUN ["cross-build-start"]
 
-# system dependencies (for anaconda and sounddevice)
+# system dependencies for anaconda
 RUN apt-get update && \
     apt-get install -y \
     curl \
-    bzip2 \
-    libportaudio2
+    bzip2
 
 # anaconda (required to get librosa installed alongside everything else)
 RUN curl -LO https://repo.continuum.io/miniconda/Miniconda-latest-Linux-armv7l.sh && \
     bash Miniconda-latest-Linux-armv7l.sh -p /miniconda -b && \
     rm Miniconda-latest-Linux-armv7l.sh && \
     conda update -y conda
+
+# libportaudio2 system library needed for python sounddevice library to work
+RUN apt-get update && \
+    apt-get install -y libportaudio2
 
 # conda packages (note: poppy-project provides some needed armv7 distributions)
 RUN conda update -y conda && \
