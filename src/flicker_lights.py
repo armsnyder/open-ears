@@ -1,4 +1,5 @@
 from multiprocessing import Event
+from random import random
 from socket import timeout
 from time import sleep
 
@@ -31,24 +32,28 @@ def with_retries(func):
     return inner_call
 
 
+def sleep_random():
+    sleep(0.05 + random() * 0.3)
+
+
 def run_greg():
     lamp = 'Greg Lamp'
     white = [0.402, 0.3768]
     bridge = get_bridge()
+    max_bri = 255
     while True:
         my_print('Awaiting flicker_greg command')
         flicker_greg.wait()
         my_print('Flickering Greg')
         prev = with_retries(bridge.get_light)(lamp)['state']
-        with_retries(bridge.set_light)(lamp, {'bri': 128, 'on': True, 'xy': white},
+        with_retries(bridge.set_light)(lamp, {'bri': max_bri, 'on': True, 'xy': white},
                                        transitiontime=0)
-        sleep(0.2)
-        with_retries(bridge.set_light)(lamp, 'on', False, 0)
-        sleep(0.2)
-        with_retries(bridge.set_light)(lamp, 'on', True, 0)
-        sleep(0.2)
-        with_retries(bridge.set_light)(lamp, 'on', False, 0)
-        sleep(0.2)
+        with_retries(bridge.set_light)(lamp, 'bri', 0, 0)
+        sleep_random()
+        with_retries(bridge.set_light)(lamp, 'bri', max_bri, 0)
+        sleep_random()
+        with_retries(bridge.set_light)(lamp, 'bri', 0, 0)
+        sleep_random()
         with_retries(bridge.set_light)(lamp,
                                        {'bri': prev['bri'], 'on': prev['on'], 'xy': prev['xy']},
                                        transitiontime=0)
