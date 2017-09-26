@@ -73,9 +73,7 @@ def find_loudest_part(signal, filtered_signal):
     return signal[start:end]
 
 
-def expensive_test(signal, filtered_signal=None):
-    if not filtered_signal:
-        filtered_signal = do_filter(signal)
+def expensive_test(signal, filtered_signal):
     loudest_part = find_loudest_part(signal, filtered_signal)
     features = extract_features_from_signal(loudest_part)
     return get_classifier().predict([features])[0]
